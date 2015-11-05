@@ -13,6 +13,9 @@
 		*/
 		public function __construct($xml,$root=''){
 			$this->my_xml=$xml;
+			if(!file_exists($xml)){
+				file_put_contents($xml,'<?xml  version="1.0" encoding="UTF-8" ?><'.$root.' />')
+			}
 			$this->xmldoc=new DOMDocument();
 			$this->xmldoc->load($xml);
 			$this->XPath=new DOMXPath($this->xmldoc);
