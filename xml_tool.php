@@ -14,7 +14,8 @@
 		public function __construct($xml,$root=''){
 			$this->my_xml=$xml;
 			if(!file_exists($xml)){
-				file_put_contents($xml,'<?xml  version="1.0" encoding="UTF-8" ?><'.$root.' />')
+				if(empty($root)) trigger_error('xml_tool error:cannot set up xml file with no root(无法生成无根节点的xml)',1);
+				file_put_contents($xml,'<?xml  version="1.0" encoding="UTF-8" ?><'.$root.' />');
 			}
 			$this->xmldoc=new DOMDocument();
 			$this->xmldoc->load($xml);
@@ -74,13 +75,16 @@
 			@thing string 新的内容
 		*/
 		public function update($path,$index,$thing){
-			$node=$this->found($path);->item($index);
+			$node=$this->found($path)->item($index);
 			$node->nodeValue=$thing;
 			$this->save=true;
 		}
+		public function save(){
+			$this->xmldoc->save($this->my_xml);
+		}
 		//析构函数 在程序运行结束后更新磁盘上的物理文件
 		public function __destruct(){
-			this->save&&$this->xmldoc->save($this->my_xml);
+			$this->save&&$this->save();
 		}
 	}
 ?>
