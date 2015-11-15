@@ -40,7 +40,7 @@
 			return string 节点的值
 		*/
 		public function look($path,$index){
-			return $this->found($path)->nodeValue;
+			return $this->found($path)->item($index)->nodeValue;
 		}
 		/**
 			@path string 符合XPath格式的父元素路径
