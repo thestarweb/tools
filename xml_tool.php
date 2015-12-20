@@ -10,10 +10,11 @@
 		/**
 			@xml string xml文档路径
 			@root string 如果文件不存在将会以此名称为根节点创建
+			@set bool 是否强制重新创建文件
 		*/
-		public function __construct($xml,$root=''){
+		public function __construct($xml,$root='',$set=false){
 			$this->my_xml=$xml;
-			if(!file_exists($xml)){
+			if($set||!file_exists($xml)){
 				if(empty($root)) trigger_error('xml_tool error:cannot set up xml file with no root(无法生成无根节点的xml)',1);
 				file_put_contents($xml,'<?xml  version="1.0" encoding="UTF-8" ?><'.$root.' />');
 			}
