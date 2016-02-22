@@ -38,10 +38,20 @@
 		}
 		/**
 			@path string 符合XPath格式的路径
+			@index int 节点位置
 			return string 节点的值
 		*/
 		public function look($path,$index){
 			return $this->found($path)->item($index)->nodeValue;
+		}
+		/**
+			@path string 符合XPath格式的路径
+			@index int 节点位置
+			@attributes string 属性名称
+			return string 节点的值
+		*/
+		public function look_attributes($path,$index,$attributes=""){
+			this->found($path)->item($index)->attributes($attributes);
 		}
 		/**
 			@path string 符合XPath格式的父元素路径
