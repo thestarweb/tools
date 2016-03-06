@@ -21,7 +21,7 @@ class cache_tool{
 	@cache_file 缓存文件
 	*/
 	public function __construct($cache_file,$cache_time=3600){
-		if(file_exists($cache_file)) list($this->data['end_time'],$this->data['body'])=explode('\n', file_get_contents($cache_file));
+		if(file_exists($cache_file)) list($this->data['end_time'],$this->data['body'])=explode("\n", file_get_contents($cache_file),2);
 		$this->file=$cache_file;
 		$this->time=$cache_time;
 	}
@@ -30,18 +30,20 @@ class cache_tool{
 			echo $this->data['body'];
 			return false;
 		}else{
-			$this->ob_temp=ob_get_clean();
+			$this->ob_temp=ob_get_contents();
+			ob_clean();
 			return true;
 		}
 	}
 	public function end_page_cache(){
-		$temp=ob_get_clean();
+		$temp=ob_get_contents();
+		ob_clean();
 		echo $this->ob_temp,$temp;
 		$this->data['body']=$temp;
 		$this->data['end_time']=$this->time+time();
 		$this->save();
 	}
 	private function save(){
-		file_put_contents($this->file,$this->data['end_time'].'\n'.$this->data['body']);
+		file_put_contents($this->file,$this->data['end_time']."\n".$this->data['body']);
 	}
 }
