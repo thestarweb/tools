@@ -51,7 +51,7 @@
 			return string 节点的值
 		*/
 		public function look_attributes($path,$index,$attributes=""){
-			this->found($path)->item($index)->attributes($attributes);
+			$this->found($path)->item($index)->attributes($attributes);
 		}
 		/**
 			@path string 符合XPath格式的父元素路径
