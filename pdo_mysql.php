@@ -23,7 +23,7 @@
 		/**
 			@sql string 要执行的sql语句
 		*/
-		public function execute($sql){
+		public function exec($sql){
 			$sql=str_replace('@%_',$this->prefix,$sql);
 			list($doing)=explode(' ',$sql);
 			$doing=strtoupper($doing);
@@ -104,7 +104,7 @@
 				查询语句 array 检索出的数据
 				插入等语句 int 是否执行成功
 		*/
-		public function u_execute($sql,$arr,$fetch_type=PDO::FETCH_ASSOC){
+		public function u_exec($sql,$arr,$fetch_type=PDO::FETCH_ASSOC){
 			$sth=$this->prepare(str_replace('@%_',$this->prefix,$sql));
 			$sth->execute($arr);
 			$error=$sth->errorInfo();
