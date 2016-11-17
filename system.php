@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=2;
+		const VISION=3;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -256,9 +256,10 @@
 			$file=$this->cfgs['plugin_dir'].'bin/'.$p.'.html';
 			if(file_exists($file))echo file_get_contents($file);
 		}
-		public function load_plugin_php($p){
+		public function load_plugin_php($p,$c){
 			$file=$this->cfgs['plugin_dir'].'bin/'.$p.'.php';
 			if(file_exists($file))include $file;
+			return $c;
 		}
 
 		//数据库连接
