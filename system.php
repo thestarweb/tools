@@ -161,7 +161,7 @@
 			$this->cfgs['servers_dir']=$this->full_path($this->dir($this->cfgs['servers_dir']));
 			$this->cfgs['controls_dir']=$this->full_path($this->dir($this->cfgs['controls_dir']));
 			$this->cfgs['plugin_dir']=$this->full_path($this->dir($this->cfgs['plugin_dir']));
-			$this->cfgs['img_dir']=$this->full_path($this->dir($this->cfgs['img_dir']));	
+			$this->cfgs['imgs_dir']=$this->full_path($this->dir($this->cfgs['imgs_dir']));	
 			//var_dump($this->cfgs);exit;
 		}
 		
