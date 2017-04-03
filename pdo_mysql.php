@@ -31,7 +31,7 @@
 				$res=$this->pdo->query($sql);
 				$error=$this->pdo->errorInfo();
 				if($error[1]){
-					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2],512);
+					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2].'　SQL语句：'.$sql,512);
 				}
 				if(is_object($res)){
 					$res->setFetchMode(PDO::FETCH_ASSOC);
@@ -47,7 +47,7 @@
 				$res=$this->pdo->exec($sql);
 				$error=$this->pdo->errorInfo();
 				if($error[1]){
-					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2],512);
+					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2].'　SQL语句：'.$sql,512);
 				}
 				return $res;
 			}
