@@ -50,8 +50,9 @@
 			@attributes string 属性名称
 			return string 节点的值
 		*/
-		public function look_attributes($path,$index,$attributes=''){
-			return $this->found($path)->item($index)->getAttribute($attributes);
+		public function look_attributes($path,$index,$attributes,$check=false){
+			$dom=$this->found($path)->item($index);
+			return !$check||$dom->hasAttribute($attributes)?$dom->getAttribute($attributes):false;
 		}
 		/**
 			@path string 符合XPath格式的父元素路径
