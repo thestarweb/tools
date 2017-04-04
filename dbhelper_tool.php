@@ -9,11 +9,11 @@ class dbhelper_tool{
 		}
 		return false;
 	}
-	private static function get_structure_string($name,$type,$attributes,$null,$last_structure,$auto_increment){
-		return '`'.$name.'`'.$type.' '.$attributes.' '.($null?'':'NOT NULL ').($auto_increment?'AUTO_INCREMENT ':'').($last_structure?('AFTER `'.$last_structure.'`;'):'FIRST');
+	private static function get_structure_string($name,$type,$attributes,$null,$last_structure,$default,$auto_increment){
+		return '`'.$name.'`'.$type.' '.$attributes.' '.($null?'':'NOT NULL ').($auto_increment?'AUTO_INCREMENT ':'').($default===false?'':('DEFAULT \''.str_replace('\'','\\\'', $default).'\'')).($last_structure?('AFTER `'.$last_structure.'`;'):'FIRST');
 	}
-	private static function change_structure($db,$table_name,$old_name,$name,$type,$attributes,$null,$last_structure,$auto_increment){
-		$db->exec('ALTER TABLE `'.$table_name.'` CHANGE `'.$old_name.'` '.self::get_structure_string($name,$type,$attributes,$null,$last_structure,$auto_increment));
+	private static function change_structure($db,$table_name,$old_name,$dbstring){
+		$db->exec('ALTER TABLE `'.$table_name.'` CHANGE `'.$old_name.'` '.$dbstring);
 	}
 	private static function get_primarykey($indexs){
 		foreach($indexs as $v){
@@ -75,8 +75,10 @@ class dbhelper_tool{
 				$type=$xml->look_attributes($structure_path,$j,'type');
 				$null=$xml->look_attributes($structure_path,$j,'null')=="true";
 				$attributes=$xml->look_attributes($structure_path,$j,'attributes');
+				$default=$xml->look_attributes($structure_path,$j,'default',true);
+				$dbstring=self::get_structure_string($structure_name,$type,$attributes,$null,$last_structure,$default,$auto_increment);
 				if($k===false){
-					$db->exec('ALTER TABLE `'.$table_name.'` ADD '.self::get_structure_string($structure_name,$type,$attributes,$null,$last_structure,$auto_increment));
+					$db->exec('ALTER TABLE `'.$table_name.'` ADD '.$dbstring);
 				}else{
 					$primarykey=self::get_primarykey($index);
 					if($auto_increment&&$primarykey!=$structure_name){
@@ -86,7 +88,7 @@ class dbhelper_tool{
 						}
 						$db->exec('ALTER TABLE `'.$table_name.'` ADD PRIMARY KEY(`'.$structure_name.'`)');
 					}
-					self::change_structure($db,$table_name,$old_name,$structure_name,$type,$attributes,$null,$last_structure,$auto_increment);
+					self::change_structure($db,$table_name,$old_name,$dbstring);
 				}
 				$last_structure=$structure_name;
 			}
