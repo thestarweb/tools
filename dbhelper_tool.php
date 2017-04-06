@@ -55,7 +55,7 @@ class dbhelper_tool{
 				var_dump($indexs[$v['Key_name']]);
 				$indexs[$v['Key_name']]['value'].=','.$v['Column_name'];
 			}else{
-				$type=$v['Index_type']=='BTREE'?($v['Key_name']=='PRIMARY'?'PRIMARY':($v['Non_unique']?'INDEX':'UNIQUE')):$v['Index_type'];
+				$type=($v['Index_type']=='BTREE'||$v['Index_type']=="HASH")?($v['Key_name']=='PRIMARY'?'PRIMARY':($v['Non_unique']?'INDEX':'UNIQUE')):$v['Index_type'];
 				var_dump($type);
 				$indexs[$v['Key_name']]=['value'=>$v['Column_name'],'type'=>$type];
 			}
