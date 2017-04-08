@@ -48,10 +48,22 @@
 			@path string 符合XPath格式的路径
 			@index int 节点位置
 			@attributes string 属性名称
-			return string 节点的值
+			@check bool 是否需检查确认是否存在此属性
+			return string 属性的值
 		*/
-		public function look_attributes($path,$index,$attributes=""){
-			$this->found($path)->item($index)->attributes($attributes);
+		public function look_attributes($path,$index,$attributes,$check=false){
+			$dom=$this->found($path)->item($index);
+			return !$check||$dom->hasAttribute($attributes)?$dom->getAttribute($attributes):false;
+		}
+		/**
+			@path string 符合XPath格式的路径
+			@index int 节点位置
+			@attributes string 属性名称
+			@value string 属性的值
+			return void
+		*/
+		public function add_attributes($path,$index,$attributes,$value){
+			return $this->found($path)->item($index)->setAttribute($attributes,$value);
 		}
 		/**
 			@path string 符合XPath格式的父元素路径

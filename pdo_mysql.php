@@ -23,7 +23,7 @@
 		/**
 			@sql string 要执行的sql语句
 		*/
-		public function exec($sql){
+		public function exec($sql,$FetchMode=PDO::FETCH_ASSOC){
 			$sql=str_replace('@%_',$this->prefix,$sql);
 			list($doing)=explode(' ',$sql);
 			$doing=strtoupper($doing);
@@ -31,10 +31,10 @@
 				$res=$this->pdo->query($sql);
 				$error=$this->pdo->errorInfo();
 				if($error[1]){
-					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2],512);
+					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2].'　SQL语句：'.$sql,512);
 				}
 				if(is_object($res)){
-					$res->setFetchMode(PDO::FETCH_ASSOC);
+					$res->setFetchMode($FetchMode);
 					return $res->fetchAll();
 				}else{
 					if($res===false){
@@ -47,7 +47,7 @@
 				$res=$this->pdo->exec($sql);
 				$error=$this->pdo->errorInfo();
 				if($error[1]){
-					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2],512);
+					trigger_error('mysql_tool error:'.$error[1].'故障信息'.$error[2].'　SQL语句：'.$sql,512);
 				}
 				return $res;
 			}
