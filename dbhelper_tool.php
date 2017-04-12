@@ -125,8 +125,16 @@ class dbhelper_tool{
 			$table_name='@%_'.$xml->look_attributes('/db/table',$i,'name');
 			//var_dump($table_name);exit;
 			$engine=$xml->look_attributes('/db/table',$i,'engine');
-			//先不管三七二十一，保证有这么一张表。
-			$db->exec('CREATE TABLE IF NOT EXISTS `'.$table_name.'`(`id` int)'.($engine?' ENGINE='.$engine:'').' DEFAULT CHARSET=utf8 COLLATE=utf8_bin;');
+			//获取表的基本信息
+			$table_status=$db->exec('SHOW TABLE STATUS WHERE name="'.$table_name.'"');
+			if($table_status){
+				if($engine&&$engine!==$table_status[0]['Engine']){
+					$db->exec('alter table `'.$table_name.'` engine='.$engine);
+					echo '修改了表'.$table_name.'的存储引擎<br/>';
+				}
+			}else{
+				$db->exec('CREATE TABLE IF NOT EXISTS `'.$table_name.'`(`id` int)'.($engine?' ENGINE='.$engine:'').' DEFAULT CHARSET=utf8 COLLATE=utf8_bin;');
+			}
 			//分析这个表目前的状态
 			$s=$db->exec('DESC `'.$table_name.'`');
 			//获取现有索引
