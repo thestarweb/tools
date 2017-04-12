@@ -124,8 +124,9 @@ class dbhelper_tool{
 			$b='/db/table['.($i+1).']';
 			$table_name='@%_'.$xml->look_attributes('/db/table',$i,'name');
 			//var_dump($table_name);exit;
+			$engine=$xml->look_attributes('/db/table',$i,'engine');
 			//先不管三七二十一，保证有这么一张表。
-			$db->exec('CREATE TABLE IF NOT EXISTS `'.$table_name.'`(`id` int)DEFAULT CHARSET=utf8 COLLATE=utf8_bin;');
+			$db->exec('CREATE TABLE IF NOT EXISTS `'.$table_name.'`(`id` int)'.($engine?' ENGINE='.$engine:'').' DEFAULT CHARSET=utf8 COLLATE=utf8_bin;');
 			//分析这个表目前的状态
 			$s=$db->exec('DESC `'.$table_name.'`');
 			//获取现有索引
