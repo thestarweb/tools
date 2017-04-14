@@ -26,6 +26,7 @@
 			'use_key_reg_oney'=>0,
 			'reg_ver_ses_name'=>'reg',
 			'off_info'=>'',
+			'allow_PCViewInMobile'=>'0',
 			'debug'=>0
 		);//用于存放配置文件
 		public function __construct($ini='./cfg.ini',$sfc=''){
@@ -243,13 +244,16 @@
 			}
 		}
 		public function get_view($name,$use_phone=true){
-			//var_dump($this->is_phone,$name);
 			if($this->is_phone&&$use_phone){
+				$file=$this->cfgs['views_dir'].$name.'.phone.html';
+				if(file_exists($file)) return $file;
 				$file=$this->cfgs['views_dir'].$name.'_phone.html';
-				return file_exists($file)?$file:($this->cfgs['views_dir'].'phone_nofile.html');
-			}else{
-				return $this->cfgs['views_dir'].$name.'.html';
+				if(file_exists($file)) return $file;
+				if(!$this->cfgs['allow_PCViewInMobile']){
+					return $this->cfgs['views_dir'].'phone_nofile.html';
+				}
 			}
+			return $this->cfgs['views_dir'].$name.'.html';
 		}
 		//提供两种加载插件的方法 视情况选择
 		public function load_plugin_html($p){
