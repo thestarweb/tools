@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=3;
+		const VISION=4;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -18,6 +18,8 @@
 			'controls_dir'=>'./control',//控制器类文件夹位置
 			'views_dir'=>'./view',//模板位置
 			'plugin_dir'=>'./plugin',//插件文件夹位置
+			'lang_dir'=>'./lang',//语言文件夹位置
+			'lang_default'=>'zh-cn',//默认语言
 			'imgs_dir'=>'./img/',//图片文件夹位置
 			'imgs_url'=>'./img',//图片文件夹web访问位置
 			'styles_url'=>'./style',//样式文件web访问位置
@@ -29,6 +31,8 @@
 			'allow_PCViewInMobile'=>'0',
 			'debug'=>0
 		);//用于存放配置文件
+		private $_lang=array();
+		private $lang_type;
 		public function __construct($ini='./cfg.ini',$sfc=''){
 			
 			ob_start();
@@ -65,6 +69,15 @@
 					$this->is_phone=$_COOKIE['phone'];
 				}else{
 					setcookie('phone',$this->is_phone=isset($_SERVER['HTTP_X_REQUESTED_WITH'])||stripos($_SERVER['HTTP_USER_AGENT'],'Mobile'),0,URLROOT);
+				}
+			}
+			if(isset($_GET['lang'])){
+				setcookie('lang',($this->lang_type=$_GET['lang']),0,URLROOT);
+			}else{
+				if(isset($_COOKIE['lang'])){
+					$this->lang_type=$_COOKIE['lang'];
+				}else{
+					$this->lang_type=$cfgs['lang_default'];
 				}
 			}
 			set_error_handler(array($this,'for_error'));//注册故障处理函数
@@ -162,6 +175,7 @@
 			$this->cfgs['servers_dir']=$this->full_path($this->dir($this->cfgs['servers_dir']));
 			$this->cfgs['controls_dir']=$this->full_path($this->dir($this->cfgs['controls_dir']));
 			$this->cfgs['plugin_dir']=$this->full_path($this->dir($this->cfgs['plugin_dir']));
+			$this->cfgs['lang_dir']=$this->full_path($this->dir($this->cfgs['lang_dir']));
 			$this->cfgs['imgs_dir']=$this->full_path($this->dir($this->cfgs['imgs_dir']));	
 			//var_dump($this->cfgs);exit;
 		}
@@ -264,6 +278,19 @@
 			$file=$this->cfgs['plugin_dir'].'bin/'.$p.'.php';
 			if(file_exists($file))include $file;
 			return $c;
+		}
+		public function lang($p,$name){
+			if(!array_key_exists($p,$this->_lang)){
+				$file=$cfgs['$lang_dir'].$p.'.lang';
+				if(file_exists($file)){
+					include $file;
+				}
+			}
+			if(isset($this->_lang[$p][$name])){
+				return $this->_lang[$p][$name];
+			}else{
+				return $p.'.'.$name;
+			}
 		}
 
 		//数据库连接
