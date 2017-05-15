@@ -77,7 +77,7 @@
 				if(isset($_COOKIE['lang'])){
 					$this->lang_type=$_COOKIE['lang'];
 				}else{
-					$this->lang_type=$cfgs['lang_default'];
+					$this->lang_type=$this->cfgs['lang_default'];
 				}
 			}
 			set_error_handler(array($this,'for_error'));//注册故障处理函数
