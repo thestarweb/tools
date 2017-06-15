@@ -90,6 +90,10 @@ class dbhelper_tool{
 	*/
 	private static function add_index($db,$table_name,$type,$indexname,$index_structure){
 		self::$index_add++;
+		if($type='PRIMARY'){
+			$db->exec('ALTER TABLE `'.$table_name.'` ADD PRIMARY KEY(`'.$index_structure.'`)');
+			return;
+		}
 		$index_structure=str_replace(',','`,`',$index_structure);
 		if($type=='UNIQUE')$type.=' KEY';
 		$db->exec('ALTER TABLE `'.$table_name.'` ADD '.$type.'  `'.$indexname.'`( `'.$index_structure.'` ) ');
@@ -200,6 +204,12 @@ class dbhelper_tool{
 					}else{
 						unset($indexs[$name]);
 						self::remove_index($db,$table_name,$name);
+					}
+				}elseif($type=='PRIMARY'&&isset($indexs['PRIMARY'])){
+					if($indexs['PRIMARY']['value']==$value){
+						continue;
+					}else{
+						$db->exec('ALTER TABLE `'.$table_name.'` DROP PRIMARY KEY');
 					}
 				}
 				self::add_index($db,$table_name,$type,$name,$value);
