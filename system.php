@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=5;
+		const VISION=6;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -32,6 +32,11 @@
 			'allow_PCViewInMobile'=>'0',
 			'debug'=>0
 		);//用于存放配置文件
+		public $lang_name=[
+			'zh-cn'=>'简体中文',
+			'zh-tw'=>'繁體中文',
+			'en-uk'=>'english',
+		];
 		private $_lang=[];
 		private $lang_type;
 		public function __construct($ini='./cfg.ini',$sfc=''){
@@ -298,6 +303,16 @@
 			}else{
 				return $p.'.'.$name;
 			}
+		}
+		public function lang_list(){
+			$l=scandir($this->cfgs['lang_dir']);
+			$list=[];
+			foreach($l as $v){
+				if(in_array($v,$this->cfgs['lang_list'])){
+					$list[$v]=$this->lang_name[$v];
+				}
+			}
+			return $list;
 		}
 
 		//数据库连接
