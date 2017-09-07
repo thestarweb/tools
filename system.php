@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=6;
+		const VISION=7;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -275,6 +275,9 @@
 				}
 			}
 			return $this->cfgs['views_dir'].$name.'.html';
+		}
+		public function on_phone(){
+			return $this->is_phone;
 		}
 		//提供两种加载插件的方法 视情况选择
 		public function load_plugin_html($p){
