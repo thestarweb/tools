@@ -52,11 +52,11 @@ class dbhelper_tool{
 		foreach($index as $v){
 			//var_dump($v);exit;
 			if(isset($indexs[$v['Key_name']])){
-				var_dump($indexs[$v['Key_name']]);
+				//var_dump($indexs[$v['Key_name']]);
 				$indexs[$v['Key_name']]['value'].=','.$v['Column_name'];
 			}else{
 				$type=($v['Index_type']=='BTREE'||$v['Index_type']=="HASH")?($v['Key_name']=='PRIMARY'?'PRIMARY':($v['Non_unique']?'INDEX':'UNIQUE')):$v['Index_type'];
-				var_dump($type);
+				//var_dump($type);
 				$indexs[$v['Key_name']]=['value'=>$v['Column_name'],'type'=>$type];
 			}
 		}
@@ -89,13 +89,13 @@ class dbhelper_tool{
 		return void
 	*/
 	private static function add_index($db,$table_name,$type,$indexname,$index_structure){
+		//var_dump($table_name,$type,$indexname,$index_structure);echo '<br/>';return;
 		self::$index_add++;
-		if($type='PRIMARY'){
+		if($type=='PRIMARY'){
 			$db->exec('ALTER TABLE `'.$table_name.'` ADD PRIMARY KEY(`'.$index_structure.'`)');
 			return;
 		}
 		$index_structure=str_replace(',','`,`',$index_structure);
-		if($type=='UNIQUE')$type.=' KEY';
 		$db->exec('ALTER TABLE `'.$table_name.'` ADD '.$type.'  `'.$indexname.'`( `'.$index_structure.'` ) ');
 	}
 	/**
