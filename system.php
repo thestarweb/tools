@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=7;
+		const VISION=8;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -26,8 +26,7 @@
 			'styles_url'=>'./style',//样式文件web访问位置
 			'root_use'=>'index',//文件夹相对路径相对于那个文件
 			'my_script_path'=>'/myScript2.js',//核心脚本库web访问url
-			'use_key_reg_oney'=>0,
-			'reg_ver_ses_name'=>'reg',
+			'has_CDN'=>0,
 			'off_info'=>'',
 			'allow_PCViewInMobile'=>'0',
 			'debug'=>0
@@ -185,6 +184,15 @@
 			$this->cfgs['imgs_dir']=$this->full_path($this->dir($this->cfgs['imgs_dir']));
 			$this->cfgs['lang_list']=explode(',',strtolower($this->cfgs['lang_list']));
 			//var_dump($this->cfgs);exit;
+		}
+
+		public function uip(){
+			if($this->cfgs['has_CDN']&&$_SERVER['HTTP_X_FORWARDED_FOR']){
+				list($i)=explode(',',$_SERVER['HTTP_X_FORWARDED_FOR']);
+				return $i;
+			}else{
+				return $_SERVER['REMOTE_ADDR'];
+			}
 		}
 		
 		//获取完整路径
