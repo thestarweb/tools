@@ -62,7 +62,7 @@
 			@sql string 需要预编译的sql语句
 		*/
 		public function prepare($sql){
-			return $this->pdo->prepare($sql);
+			return $this->pdo->prepare(str_replace('@%_',$this->prefix,$sql));
 		}
 
 		//支持有用户输入参数过滤的sql语句执行方法
@@ -76,7 +76,7 @@
 				影响行数
 		*/
 		public function u_exec($sql,$arr,$fetch_type=PDO::FETCH_ASSOC){
-			$sth=$this->prepare(str_replace('@%_',$this->prefix,$sql));
+			$sth=$this->prepare($sql);
 			$sth->execute($arr);
 			$error=$sth->errorInfo();
 			if($error[1]){
