@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=8;
+		const VISION=9;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -26,6 +26,7 @@
 			'styles_url'=>'./style',//样式文件web访问位置
 			'root_use'=>'index',//文件夹相对路径相对于那个文件
 			'my_script_path'=>'/myScript2.js',//核心脚本库web访问url
+			'start_session'=>1,
 			'has_CDN'=>0,
 			'off_info'=>'',
 			'allow_PCViewInMobile'=>'0',
@@ -41,7 +42,6 @@
 		public function __construct($ini='./cfg.ini',$sfc=''){
 			
 			ob_start();
-			session_start();
 			header('charset: utf-8');
 			header('Content-Type: text/html;charset=utf-8');
 			header('server: star-server');
@@ -66,6 +66,10 @@
 			
 			@define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
 			$this->load_cfg($ini,$ftime);//载入配置
+
+			if($this->cfgs['start_session']){
+				session_start();
+			}
 			
 			if(isset($_GET['phone'])){
 				setcookie('phone',($this->is_phone=$_GET['phone']?1:0),0,URLROOT);
