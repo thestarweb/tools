@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=9;
+		const VISION=10;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
 		public static function get_system(){
@@ -189,7 +189,7 @@
 			$this->cfgs['lang_list']=explode(',',strtolower($this->cfgs['lang_list']));
 			//var_dump($this->cfgs);exit;
 		}
-
+		//获取用户IP地址（解决有无CND切换造成IP地址记录的一些问题）
 		public function uip(){
 			if($this->cfgs['has_CDN']&&$_SERVER['HTTP_X_FORWARDED_FOR']){
 				list($i)=explode(',',$_SERVER['HTTP_X_FORWARDED_FOR']);
@@ -356,6 +356,11 @@
 			print_r($message);
 			exit;
 		}
+		/**
+			生成随机字符串
+			@lens int 需要的长度
+			return string 随机字符串
+		*/
 		public function rand($lens){
 			$lens+=0;
 			if($lens<1){
@@ -364,6 +369,14 @@
 			$str='ABCDEGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
 			for($time=$lens%10;$time>0;$time--) $str.=$str;
 			return substr(str_shuffle($str),0,$lens);
+		}
+		/**
+			隐藏IP地址后一段以便输出时不会造成一些信息泄露
+			@ip string
+			return string
+		*/
+		public function protect_ip($ip){
+			return substr($ip,0,strrpos($ip,'.')).'.*';
 		}
 		//故障处理函数
 		public function for_error($errno,$errstr,$errfile,$errline){
@@ -387,13 +400,13 @@
 				echo '</table>';
 				exit;
 			}else{
-			$file=explode('\\',$errfile);
-			$file=explode('/',array_pop($file));
-			$fp=fopen('./error.log','a');
-			fwrite($fp,"\r\n".serialize(array('time'=>date('Y-m-d h:m:s'),'file'=>array_pop($file),'line'=>$errline,'info'=>$errstr,'page'=>$_SERVER['REQUEST_URI']))."\r\n");
-			fclose($fp);
-			require $this->get_view('error/500');
-		}
+				$file=explode('\\',$errfile);
+				$file=explode('/',array_pop($file));
+				$fp=fopen('./error.log','a');
+				fwrite($fp,"\r\n".serialize(array('time'=>date('Y-m-d h:m:s'),'file'=>array_pop($file),'line'=>$errline,'info'=>$errstr,'page'=>$_SERVER['REQUEST_URI']))."\r\n");
+				fclose($fp);
+				require $this->get_view('error/500');
+			}
 		}
 	}
 	
