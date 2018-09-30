@@ -1,8 +1,9 @@
 <?php
 	class system{
-		const VISION=10;
+		const VISION=11;
 		private $is_phone;//是否为手机版
 		private static $self_obj;
+		private $namespase='';
 		public static function get_system(){
 			return self::$self_obj;
 		}
@@ -108,9 +109,18 @@
 		}
 		//自动加载类的方法
 		public function load_class($classname){
+			if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
+				include_once $this->cfgs['tools_dir'].$classname.'.php';
+				return;
+			}
+			//echo $classname;exit;
+			if('\\'.substr($classname,0,strrpos($classname,'\\')).'\\'==$this->namespase){
+				$classname=substr($classname,strrpos($classname,'\\'));
+			}elseif($this->namespase!=''){
+				return;
+			}
 			if(strpos($classname,'control')&&file_exists($this->cfgs['controls_dir'].$classname.'.php')) include_once $this->cfgs['controls_dir'].$classname.'.php';
 			elseif(strpos($classname,'server')&&file_exists($this->cfgs['servers_dir'].$classname.'.php')) include_once $this->cfgs['servers_dir'].$classname.'.php';
-			elseif(file_exists($this->cfgs['tools_dir'].$classname.'.php')) include_once $this->cfgs['tools_dir'].$classname.'.php';
 		}
 		//载入配置（ini文件或已处理过生成的temp文件）
 		private function load_cfg($pass='./cfg.ini',$ftime){
@@ -232,7 +242,7 @@
 		
 		//展示页面
 		public function show($server='index',$function='index',$c){
-			$obj_name=($server?$server:'index').'_control';
+			$obj_name=$this->namespase.($server?$server:'index').'_control';
 			if(class_exists($obj_name)){
 				$obj=new $obj_name($this);
 				$function_name=($function!==''?$function:'index').'_page';
