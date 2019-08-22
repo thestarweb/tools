@@ -15,7 +15,7 @@
 		public function __construct($xml,$root='',$set=false){
 			$this->my_xml=$xml;
 			if($set||!file_exists($xml)){
-				if(empty($root)) trigger_error('xml_tool error:cannot set up xml file with no root(无法生成无根节点的xml)',1);
+				if(empty($root)) trigger_error('xml_tool error:file '.$xml.' not exists or ask a new file,but no root name gaven for creat',E_USER_ERROR);
 				file_put_contents($xml,'<?xml  version="1.0" encoding="UTF-8" ?><'.$root.' />');
 			}
 			$this->xmldoc=new DOMDocument();
