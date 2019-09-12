@@ -1,12 +1,13 @@
 <?php
 	class system{
-		const VISION=12;
+		const VISION=14;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
 		public static function get_system(){
 			return self::$self_obj;
 		}
+		private $servers=[];
 		private $cfgs=array(//默认的配置，可在ini文件中重写
 			'db_type'=>'mysql',//数据库类型
 			'db_server'=>'127.0.0.1',//数据库服务器地址
@@ -58,7 +59,7 @@
 				$ftime=filemtime($sfc);
 			}
 			
-			self::$self_obj||define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));echo "sys";
+			self::$self_obj||define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
 			$this->load_cfg($ini,$ftime);//载入配置
 			
 			if(isset($_GET['phone'])){
@@ -104,7 +105,6 @@
 		}
 		//自动加载类的方法
 		public function load_class($classname){
-			echo "<br/>";
 			$namespace=substr($classname,0,strrpos($classname,'\\'));
 			if($namespace==""){
 				if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
@@ -274,6 +274,14 @@
 		//获取ini配置
 		public function ini_get($name){
 			return isset($this->cfgs[$name])?$this->cfgs[$name]:'';
+		}
+		//server对象获取位置
+		public function server($server_name){
+			if(!isset($this->servers[$server_name])){
+				if($this->namespace)$server_name='\\'.$this->namespace.'\\'.$server_name.'_server';
+				$this->servers[$server_name]=new $server_name($this);
+			}
+			return $this->servers[$server_name];
 		}
 		public function url_addget($name,$value,$oldurl=''){
 			$oldurl||$oldurl=$_SERVER['REQUEST_URI'];
