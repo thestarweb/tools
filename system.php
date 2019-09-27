@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=14;
+		const VISION=15;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -251,7 +251,7 @@
 					try{
 						call_user_func(array($obj,$function_name),$this,$c);
 					}catch(Exception $e){
-						$this->for_error($e->getCode(),$e->getMessage(),$e->getFile(),$e->getLine(),$e->getTrace());
+						$this->for_error($e->getCode(),$e->getMessage(),$e->getFile(),$e->getLine(),null,$e->getTrace());
 					}
 					return;
 				}
@@ -401,14 +401,14 @@
 			return substr($ip,0,strrpos($ip,'.')).'.*';
 		}
 		//故障处理函数
-		public function for_error($errno,$errstr,$errfile,$errline,$trace=null){
+		public function for_error($errno,$errstr,$errfile,$errline,$obj,$trace=null){
 			if($this->cfgs['debug']){
 				ob_clean();
 				echo '错误'.$errno.':'.$errstr.'<br/>';
 				echo '<table>';
 				$array=$trace?$trace:debug_backtrace();
 				//unset($array[0]);
-				//var_dump($trace,$array);exit;
+				//var_dump($obj);exit;
 				$call=null;
 				foreach($array as $v){
 					if(isset($v['file'])){
