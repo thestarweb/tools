@@ -1,12 +1,13 @@
 <?php
 	class system{
-		const VISION=11;
+		const VISION=14;
 		private $is_phone;//是否为手机版
-		private static $self_obj;
-		private $namespase='';
+		private static $self_obj=null;
+		private $namespace='';
 		public static function get_system(){
 			return self::$self_obj;
 		}
+		private $servers=[];
 		private $cfgs=array(//默认的配置，可在ini文件中重写
 			'db_type'=>'mysql',//数据库类型
 			'db_server'=>'127.0.0.1',//数据库服务器地址
@@ -14,7 +15,7 @@
 			'db_password'=>'root',//数据库密码
 			'db_name'=>'web',//数据库明
 			'db_prefix'=>'',//表前缀
-			'tools_dir'=>'./tools',//工具类文件夹位置
+			'tools_dir'=>'../tools',//工具类文件夹位置
 			'servers_dir'=>'./servers',//业务逻辑类文件夹位置
 			'controls_dir'=>'./control',//控制器类文件夹位置
 			'views_dir'=>'./view',//模板位置
@@ -48,16 +49,9 @@
 			header('server: star-server');
 			header('X-Powered-By: star-framework');
 			date_default_timezone_set('PRC');
-
 			if(strstr($_SERVER['HTTP_USER_AGENT'],'<')||strstr($_SERVER['REMOTE_ADDR'],'<')){
 				echo '<center><h1>请求参数存在恶意字符串，已经终止程序执行！</h1><hr/>星星站点框架</center>';
 				exit;
-			}
-
-			if(self::$self_obj){
-				trigger_error('you can\'t creat two system in a page');
-			}else{
-				self::$self_obj=$this;
 			}
 			$ftime=0;
 			if($sfc){
@@ -65,12 +59,8 @@
 				$ftime=filemtime($sfc);
 			}
 			
-			@define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
+			self::$self_obj||define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
 			$this->load_cfg($ini,$ftime);//载入配置
-
-			if($this->cfgs['start_session']){
-				session_start();
-			}
 			
 			if(isset($_GET['phone'])){
 				setcookie('phone',($this->is_phone=$_GET['phone']?1:0),0,URLROOT);
@@ -90,33 +80,42 @@
 					$this->lang_type=$this->cfgs['lang_default'];
 				}
 			}
-			set_error_handler(array($this,'for_error'));//注册故障处理函数
+			if(!self::$self_obj){
+				set_error_handler(array($this,'for_error'));//注册故障处理函数
+				if($this->cfgs['start_session']){
+					session_start();
+				}
+			}
 
 			spl_autoload_register(array($this,'load_class'),E_ALL);//类的自动加载
-
 			if($this->cfgs['off_info']){
 				echo $this->cfgs['off_info'];
 				exit;
 			}
-
 			if(function_exists('loaded_ok')) loaded_ok($this);
 			
-			//URL解析
-			list($path)=explode('?',$_SERVER['REQUEST_URI']);
-			$temp=strlen(URLROOT);
-			$c=explode('/',substr($path,$temp),3);
-			$this->show($c[0],isset($c[1])?$c[1]:'index',isset($c[2])?$c[2]:'');
+			
+			if(!self::$self_obj){//首次创建后URL解析，非首次创建为子系统 不自动打开页面
+				self::$self_obj=$this;
+				list($path)=explode('?',$_SERVER['REQUEST_URI']);
+				$temp=strlen(URLROOT);
+				$c=explode('/',substr($path,$temp),3);
+				$this->show($c[0],isset($c[1])?$c[1]:'index',isset($c[2])?$c[2]:'');
+			}
 		}
 		//自动加载类的方法
 		public function load_class($classname){
-			if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
-				include_once $this->cfgs['tools_dir'].$classname.'.php';
-				return;
+			$namespace=substr($classname,0,strrpos($classname,'\\'));
+			if($namespace==""){
+				if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
+					include_once $this->cfgs['tools_dir'].$classname.'.php';
+					return;
+				}
+			}else{
+				$classname=substr($classname,strrpos($classname,'\\')+1);
 			}
 			//echo $classname;exit;
-			if('\\'.substr($classname,0,strrpos($classname,'\\')).'\\'==$this->namespase){
-				$classname=substr($classname,strrpos($classname,'\\'));
-			}elseif($this->namespase!=''){
+			if($namespace!=$this->namespace){
 				return;
 			}
 			if(strpos($classname,'control')&&file_exists($this->cfgs['controls_dir'].$classname.'.php')) include_once $this->cfgs['controls_dir'].$classname.'.php';
@@ -242,7 +241,8 @@
 		
 		//展示页面
 		public function show($server='index',$function='index',$c){
-			$obj_name=$this->namespase.($server?$server:'index').'_control';
+			$obj_name=($server?$server:'index').'_control';
+			if($this->namespace)$obj_name='\\'.$this->namespace.'\\'.$obj_name;
 			if(class_exists($obj_name)){
 				$obj=new $obj_name($this);
 				$function_name=($function!==''?$function:'index').'_page';
@@ -274,6 +274,14 @@
 		//获取ini配置
 		public function ini_get($name){
 			return isset($this->cfgs[$name])?$this->cfgs[$name]:'';
+		}
+		//server对象获取位置
+		public function server($server_name){
+			if(!isset($this->servers[$server_name])){
+				if($this->namespace)$server_name='\\'.$this->namespace.'\\'.$server_name.'_server';
+				$this->servers[$server_name]=new $server_name($this);
+			}
+			return $this->servers[$server_name];
 		}
 		public function url_addget($name,$value,$oldurl=''){
 			$oldurl||$oldurl=$_SERVER['REQUEST_URI'];
@@ -339,7 +347,6 @@
 			}
 			return $list;
 		}
-
 		//数据库连接
 		private  $link;
 		public function db(){
