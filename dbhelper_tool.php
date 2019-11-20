@@ -218,6 +218,7 @@ class dbhelper_tool{
 						if(($t['Extra']=='auto_increment')==$auto_increment){
 							unset($s[$k]);
 							if($auto_increment)$ai_structure_string='';//自增长数据一致的不用更新自增长字段
+							$last_structure=$structure_name;
 							continue;//匹配成功 无须操作
 						}
 					}
