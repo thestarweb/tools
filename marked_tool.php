@@ -46,8 +46,22 @@ class marked_tool{
 		}
 		return $res;
 	}
-	public static function marked_inline($t){
-		return $t;
+	public static $inline_rule;
+	public static function marked_inline($t,$ob=[]){
+		$res='';
+		while($t){
+			$flag=false;
+			foreach (marked_tool::$inline_rule as $k => $v) {
+				if(preg_match($v[0],$t,$cap)){
+					$flag=true;
+					if(isset($v[1]))$res.=($v[1])($cap,$ob);//Parser.prototype.tok
+					$t=substr($t,strlen($cap[0]));
+					break;
+				}
+			}
+			if(!$flag) throw new Exception('marked_tool解析出错',512);
+		}
+		return $res;
 	}
 
 	public static function init(){
@@ -86,11 +100,9 @@ class marked_tool{
 					$res.='<li>'.marked_tool::marked_all($value,$cfg,$flag|0x10000).'</li>';
 				}
 				return '<'.$type.'>'.$res.'</'.$type.'>';
-			}],//列表
-			//"html"=>"/^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/",
-			"def"=>["/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +[\"(]([^\n]+)[\")])? *(?:\n+|$)/",function($cap,$cfg=[],$flag=0){
-				//
 			}],
+			//"html"=>"/^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/",
+			"def"=>["/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +[\"(]([^\n]+)[\")])? *(?:\n+|$)/"],
 			"table"=>["/^ *\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/",function($cap){
 				$body='<thead><tr>';
 				$header=preg_split('/ *\| */',preg_replace('/^ *| *\| *$/','',$cap[1]));
@@ -128,6 +140,77 @@ class marked_tool{
 				return'<p>'.marked_tool::marked_inline($cap[0],$cfg).'</p>';
 			}]//普通文本
 		];
+		self::$inline_rule=[
+			'escape'=>['/^\\\\([\\`*{}\[\]()#+\-.!_>])/',function($cap){//转义
+				return $cap[1];
+			}],
+			// 'autolink'=>['/^<([^ >]+(@|:\/)[^ >]+)>/',function($cap){
+			// 	if($cap[2]=='@'){
+			// 		text=cap[1][6]===':'?this.mangle(cap[1].substring(7)):this.mangle(cap[1]);
+			// 		href=this.mangle('mailto:')+text;
+			// 	}
+			// 	return '<a href="'.$href.'" target="_blank">'.$text.'</a>';
+			// }],
+			//url:noop,
+			//'tag'=>['/^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|\'[^\']*\'|[^\'">])*? >/'],
+			'link'=>['/^((?:!|\$|@)?)\[((?:\[[^\]]*\]|[^\]]|\](?=[^\[]*\]))*)\]\(\s*<?([^\s]*?)>?(?:\s+[\'"]([\s\S]*?)[\'"])?\s*(?: (w|h)=(\d+)(%)?)?(?: (w|h)=(\d+)(%)?)?\)/',function($cap){
+				switch ($cap[1]) {
+					case '!'://图片
+						$style='';
+						if(isset($cap[5])){
+							$temp=$cap[5];
+							if($temp=='w'){
+								$style.='width:';
+							}else{
+								$style.='height:';
+							}
+							$style.=$cap[6].(isset($cap[7])&&$cap[7]?'%;':'px;');
+							if(isset($cap[8])&&$cap[8]!=$temp){
+								if($cap[8]=='w'){
+									$style.='width:';
+								}else{
+									$style.='height:';
+								}
+								$style.=$cap[9].(isset($cap[10])&&$cap[10]?'%;':'px;');
+							}
+						}
+						return '<img src="'.$cap[3].'" alt="'.$cap[2].'" style="'.$style.'"'.(isset($cap[4])?' title="'+$cap[4]+'"':'').'>';
+					case '$'://颜色
+						return '<span style="color:'.$cap[3].';">'.$cap[2].'</span>';
+					case '@'://拓展
+						if($cap[2]=="video") return '<video src="'.$cap[3].'" controls="controls" style="max-width:100%">您的浏览器不支持直接播放视频</video>';
+						return '';
+					default:
+						return '<a href="'.$cap[3].'"'.(isset($cap[4])?' title="'.$cap[4].'"':'').' target="_blank">'.$cap[2].'</a>';
+				}
+			}],
+			//'reflink'=>['/^!?\[(inside)\]\s*\[([^\]]*)\]/'],
+			//'nolink'=>['/^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/'],
+			'strong'=>['/^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/',function($cap){
+				return '<strong>'.marked_tool::marked_inline(isset($cap[2])?$cap[2]:$cap[1]).'</strong>';
+			}],
+			'em'=>['/^\b_((?:__|[\s\S])+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/',function($cap){
+				return '<em>'.marked_tool::marked_inline(isset($cap[2])?$cap[2]:$cap[1]).'</em>';
+			}],
+			'code'=>['/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/',function($cap){
+				return '<code>'.$cap[2].'</code>';
+			}],
+			'br'=>['/^ {2,}\n(?!\s*$)/',function(){
+				return '<br/>';
+			}],
+			"del"=>['/^~~(?=\S)([\s\S]*?\S)~~/',function($cap){
+				return '<delete>'.$cap[1].'</delete>';
+			}],
+			'color'=>['/^\((#[0-9A-Fa-f]{3})\)\[(.*?)\]/',function($cap){
+				return '<span style="color:'.$cap[1].'">'.$cap[2].'</span>';
+			}],
+			'text'=>["/^[\s\S]+?(?=[\\<!\[_*`\(\$)]| {2,}\n|$)/",function($cap){
+				return $cap[0];
+			}],
+		];
+		$inside='(?:\[[^\]]*\]|[^\]]|\](?=[^\[]*\]))';
+		//self::$inline_rule['link'][0]=str_replace('inside', $inside, self::$inline_rule['link'][0]);
+		//str_replace('inside', $inside, self::$inline_rule['reflink'][0]);
 	}
 }
 marked_tool::init();
