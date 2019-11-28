@@ -9,24 +9,34 @@
 		echo 'some html';
 */
 class cache_tool{
+	const AUTO=0;
+	const TIMEOUT=1;
+	const CHANGE=2;
 	//用于存放缓存数据
-	private $data=array(
-		'end_time'=>0,//缓存结束时间
-		'body'=>''//缓存主体
-	);
+	private $data;
 	private $file;
-	private $time;
+	private $flag;
+	private $t_type;
 	private $ob_temp;//ob缓存转储
 	/**
 	@cache_file 缓存文件
 	*/
-	public function __construct($cache_file,$cache_time=3600){
-		if(file_exists($cache_file)) list($this->data['end_time'],$this->data['body'])=explode("\n", file_get_contents($cache_file),2);
+	public function __construct($cache_file,$cache_flag=3600,$t_type=0){
+		if($t_type==self::AUTO){
+			if($cache_flag<3600000&&$cache_flag!=0){
+				$t_type=self::TIMEOUT;
+			}else{
+				$t_type=self::CHANGE;
+			}
+		}
+		if(file_exists($cache_file)) $this->data=unserialize(file_get_contents($cache_file));
+		//list($this->data['cache_flag'],$this->data['body'])=explode("\n", file_get_contents($cache_file),2);
 		$this->file=$cache_file;
-		$this->time=$cache_time;
+		$this->flag=$cache_flag;
+		$this->t_type=$t_type;
 	}
 	public function start_page_cache(){
-		if(time()<$this->data['end_time']){
+		if($this->check()){
 			echo $this->data['body'];
 			return false;
 		}else{
@@ -40,10 +50,24 @@ class cache_tool{
 		ob_clean();
 		echo $this->ob_temp,$temp;
 		$this->data['body']=$temp;
-		$this->data['end_time']=$this->time+time();
+		$this->data['cache_flag']=$this->flag==self::TIMEOUT?time():$this->flag;
 		$this->save();
 	}
+	private function check(){
+		if(!$this->data) return false;
+		switch ($this->t_type) {
+			case self::TIMEOUT:
+				return time()<$this->data['cache_flag']+$this->flag;
+			case self::CHANGE:
+				return $this->data['cache_flag']===$this->flag;
+			default:
+				return false;
+				break;
+		}
+	}
 	private function save(){
-		file_put_contents($this->file,$this->data['end_time']."\n".$this->data['body']);
+		var_dump(1111);
+		if(!file_exists(dirname($this->file))) mkdir(dirname($this->file));
+		file_put_contents($this->file,serialize($this->data));
 	}
 }
