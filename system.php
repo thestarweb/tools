@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=15;
+		const VISION=16;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -20,6 +20,7 @@
 			'controls_dir'=>'./control',//控制器类文件夹位置
 			'views_dir'=>'./view',//模板位置
 			'plugin_dir'=>'./plugin',//插件文件夹位置
+			'cache_dir'=>'./cache',//插件文件夹位置
 			'lang_dir'=>'./lang',//语言文件夹位置
 			'lang_default'=>'zh-cn',//默认语言
 			'lang_list'=>'zh-cn',//有效语言包
@@ -194,6 +195,7 @@
 			$this->cfgs['servers_dir']=$this->full_path($this->dir($this->cfgs['servers_dir']));
 			$this->cfgs['controls_dir']=$this->full_path($this->dir($this->cfgs['controls_dir']));
 			$this->cfgs['plugin_dir']=$this->full_path($this->dir($this->cfgs['plugin_dir']));
+			$this->cfgs['cache_dir']=$this->full_path($this->dir($this->cfgs['cache_dir']));
 			$this->cfgs['lang_dir']=$this->full_path($this->dir($this->cfgs['lang_dir']));
 			$this->cfgs['imgs_dir']=$this->full_path($this->dir($this->cfgs['imgs_dir']));
 			$this->cfgs['lang_list']=explode(',',strtolower($this->cfgs['lang_list']));
