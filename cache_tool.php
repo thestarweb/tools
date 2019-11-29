@@ -50,8 +50,21 @@ class cache_tool{
 		ob_clean();
 		echo $this->ob_temp,$temp;
 		$this->data['body']=$temp;
-		$this->data['cache_flag']=$this->flag==self::TIMEOUT?time():$this->flag;
 		$this->save();
+	}
+	/**
+		当缓存有效时返回缓存数据，缓存无效时调用回调函数并缓存函数返回值结果
+		@callback callable 回调函数，
+		@param_array array 回调参数数组
+		return mix 缓存的回调结果
+	*/
+	public function fun_cache($callback,$param_arr){
+		if($this->check()){
+			return $this->data['body'];
+		}
+		$this->data['body']=call_user_func_array($callback,$param_arr);
+		$this->save();
+		return $this->data['body'];
 	}
 	private function check(){
 		if(!$this->data) return false;
@@ -66,8 +79,8 @@ class cache_tool{
 		}
 	}
 	private function save(){
-		var_dump(1111);
+		$this->data['cache_flag']=$this->flag==self::TIMEOUT?time():$this->flag;
 		if(!file_exists(dirname($this->file))) mkdir(dirname($this->file));
 		file_put_contents($this->file,serialize($this->data));
 	}
-}
+}	
