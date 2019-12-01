@@ -174,7 +174,7 @@ class marked_tool{
 								$style.=$cap[9].(isset($cap[10])&&$cap[10]?'%;':'px;');
 							}
 						}
-						return '<img src="'.$cap[3].'" alt="'.$cap[2].'" style="'.$style.'"'.(isset($cap[4])?' title="'+$cap[4]+'"':'').'>';
+						return '<img src="'.$cap[3].'" alt="'.$cap[2].'" style="'.$style.'"'.(isset($cap[4])?' title="'.$cap[4].'"':'').'>';
 					case '$'://颜色
 						return '<span style="color:'.$cap[3].';">'.$cap[2].'</span>';
 					case '@'://拓展
