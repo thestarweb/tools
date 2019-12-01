@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=14;
+		const VISION=16;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -20,6 +20,7 @@
 			'controls_dir'=>'./control',//控制器类文件夹位置
 			'views_dir'=>'./view',//模板位置
 			'plugin_dir'=>'./plugin',//插件文件夹位置
+			'cache_dir'=>'./cache',//插件文件夹位置
 			'lang_dir'=>'./lang',//语言文件夹位置
 			'lang_default'=>'zh-cn',//默认语言
 			'lang_list'=>'zh-cn',//有效语言包
@@ -42,7 +43,6 @@
 		private $_lang=[];
 		private $lang_type;
 		public function __construct($ini='./cfg.ini',$sfc=''){
-			
 			ob_start();
 			header('charset: utf-8');
 			header('Content-Type: text/html;charset=utf-8');
@@ -104,7 +104,7 @@
 			}
 		}
 		//自动加载类的方法
-		public function load_class($classname){
+		public function load_class($classname){///var_dump($classname,111);exit;
 			$namespace=substr($classname,0,strrpos($classname,'\\'));
 			if($namespace==""){
 				if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
@@ -114,10 +114,12 @@
 			}else{
 				$classname=substr($classname,strrpos($classname,'\\')+1);
 			}
+			//var_dump($classname,$namespace);exit;
 			//echo $classname;exit;
 			if($namespace!=$this->namespace){
 				return;
 			}
+			//echo $classname;exit;
 			if(strpos($classname,'control')&&file_exists($this->cfgs['controls_dir'].$classname.'.php')) include_once $this->cfgs['controls_dir'].$classname.'.php';
 			elseif(strpos($classname,'server')&&file_exists($this->cfgs['servers_dir'].$classname.'.php')) include_once $this->cfgs['servers_dir'].$classname.'.php';
 		}
@@ -193,6 +195,7 @@
 			$this->cfgs['servers_dir']=$this->full_path($this->dir($this->cfgs['servers_dir']));
 			$this->cfgs['controls_dir']=$this->full_path($this->dir($this->cfgs['controls_dir']));
 			$this->cfgs['plugin_dir']=$this->full_path($this->dir($this->cfgs['plugin_dir']));
+			$this->cfgs['cache_dir']=$this->full_path($this->dir($this->cfgs['cache_dir']));
 			$this->cfgs['lang_dir']=$this->full_path($this->dir($this->cfgs['lang_dir']));
 			$this->cfgs['imgs_dir']=$this->full_path($this->dir($this->cfgs['imgs_dir']));
 			$this->cfgs['lang_list']=explode(',',strtolower($this->cfgs['lang_list']));
@@ -218,7 +221,7 @@
 				return $path;
 			}
 					//拼接
-					return $this->cfgs['root'].$path;
+			return $this->cfgs['root'].$path;
 		}
 		//强制dir增加结束符
 		public function dir($path){
@@ -247,7 +250,11 @@
 				$obj=new $obj_name($this);
 				$function_name=($function!==''?$function:'index').'_page';
 				if(is_callable(array($obj,$function_name))){
-					call_user_func(array($obj,$function_name),$this,$c);
+					try{
+						call_user_func(array($obj,$function_name),$this,$c);
+					}catch(Exception $e){
+						$this->for_error($e->getCode(),$e->getMessage(),$e->getFile(),$e->getLine(),null,$e->getTrace());
+					}
 					return;
 				}
 			}
@@ -396,14 +403,14 @@
 			return substr($ip,0,strrpos($ip,'.')).'.*';
 		}
 		//故障处理函数
-		public function for_error($errno,$errstr,$errfile,$errline){
+		public function for_error($errno,$errstr,$errfile,$errline,$obj,$trace=null){
 			if($this->cfgs['debug']){
 				ob_clean();
 				echo '错误'.$errno.':'.$errstr.'<br/>';
 				echo '<table>';
-				$array =debug_backtrace();
+				$array=$trace?$trace:debug_backtrace();
 				//unset($array[0]);
-				//var_dump($array);
+				//var_dump($obj);exit;
 				$call=null;
 				foreach($array as $v){
 					if(isset($v['file'])){
