@@ -96,6 +96,56 @@
 		public function u_do_SQL($sql,$arr,$fetch_type=PDO::FETCH_ASSOC,$fetch_style=''){
 			return $this->u_exec($sql,$arr,$fetch_type);
 		}
+
+		/**
+			尝试更新数据，如果返回行数为0，则插入这条数据
+			@table_name string 表名
+			@where array 键为条件名称值为条件值
+			@data array 键为需要更新的列，值为列对应的值
+			return void
+
+			*表名和列名不会进行过滤
+			**必须填写where条件，此外，where和data提供字段以外的值必须有默认值或允许为空，否则无法插入
+		*/
+		public function update_or_insert($table_name,$where,$data){
+			$sql='UPDATE `'.$table_name.'` SET ';
+			$flag=false;
+			$values=[];
+			foreach ($data as $key => $value) {
+				if($flag) $sql.=',';
+				$flag=true;
+				$sql.='`'.$key.'`=?';
+				$values[]=$value;
+			}
+			$flag=false;
+			$sql.=' WHERE ';
+			foreach ($where as $key => $value) {
+				if($flag) $sql.=' AND ';
+				$flag=true;
+				$sql.='`'.$key.'`=?';
+				$values[]=$value;
+			}
+			if(!$this->u_do_SQL($sql,$values)){
+				$placeholder='';
+				$keys='';
+				foreach ($data as $key => $value) {
+					$keys.='`'.$key.'`,';
+					$placeholder.='?,';
+				}
+				$flag=false;
+				foreach ($where as $key => $value) {
+					if($flag){
+						$keys.=',';
+						$placeholder.=',';
+					}
+					$flag=true;
+					$keys.='`'.$key.'`';
+					$placeholder.='?';
+				}
+				$this->u_do_SQL('INSERT INTO `'.$table_name.'`('.$keys.') VALUE('.$placeholder.')',$values);
+			}
+		}
+
 		public function get_insert_id(){
 			return $this->pdo->lastInsertId();
 		}
