@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=16;
+		const VISION=17;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -93,6 +93,10 @@
 				exit;
 			}
 			if(function_exists('loaded_ok')) loaded_ok($this);
+
+			if(isset($_SERVER['CONTENT_TYPE'])&&strstr($_SERVER['CONTENT_TYPE'],'application/json')){
+				$_POST=json_decode(file_get_contents('php://input'));
+			}
 			
 			
 			if(!self::$self_obj){//首次创建后URL解析，非首次创建为子系统 不自动打开页面
