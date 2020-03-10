@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=17;
+		const VISION=18;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -330,13 +330,18 @@
 			if(file_exists($file))include $file;
 			return $c;
 		}
+		public function load_lang($p){
+			$file=$this->cfgs['lang_dir'].$this->lang_type.'/'.$p.'.lang';
+			if(file_exists($file)){
+				$res=include $file;
+				$this->_lang[$p]=isset($l)?$l:$res;
+			}else{
+				$this->_lang[$p]=[];
+			}
+		}
 		public function lang($p,$name,$s=[]){
 			if(!array_key_exists($p,$this->_lang)){
-				$file=$this->cfgs['lang_dir'].$this->lang_type.'/'.$p.'.lang';
-				if(file_exists($file)){
-					include $file;
-					$this->_lang[$p]=$l;
-				}
+				$this->load_lang($p);
 			}
 			if(isset($this->_lang[$p][$name])){
 				$str=$this->_lang[$p][$name];
