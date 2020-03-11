@@ -363,6 +363,9 @@
 			}
 			return $list;
 		}
+		public function get_user_lang(){
+			return $this->lang_type;
+		}
 		//数据库连接
 		private  $link;
 		public function db(){
