@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=16;
+		const VISION=18;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -93,6 +93,10 @@
 				exit;
 			}
 			if(function_exists('loaded_ok')) loaded_ok($this);
+
+			if(isset($_SERVER['CONTENT_TYPE'])&&strstr($_SERVER['CONTENT_TYPE'],'application/json')){
+				$_POST=json_decode(file_get_contents('php://input'),true);
+			}
 			
 			
 			if(!self::$self_obj){//首次创建后URL解析，非首次创建为子系统 不自动打开页面
@@ -326,13 +330,18 @@
 			if(file_exists($file))include $file;
 			return $c;
 		}
+		public function load_lang($p){
+			$file=$this->cfgs['lang_dir'].$this->lang_type.'/'.$p.'.lang';
+			if(file_exists($file)){
+				$res=include $file;
+				$this->_lang[$p]=isset($l)?$l:$res;
+			}else{
+				$this->_lang[$p]=[];
+			}
+		}
 		public function lang($p,$name,$s=[]){
 			if(!array_key_exists($p,$this->_lang)){
-				$file=$this->cfgs['lang_dir'].$this->lang_type.'/'.$p.'.lang';
-				if(file_exists($file)){
-					include $file;
-					$this->_lang[$p]=$l;
-				}
+				$this->load_lang($p);
 			}
 			if(isset($this->_lang[$p][$name])){
 				$str=$this->_lang[$p][$name];
@@ -353,6 +362,9 @@
 				}
 			}
 			return $list;
+		}
+		public function get_user_lang(){
+			return $this->lang_type;
 		}
 		//数据库连接
 		private  $link;
