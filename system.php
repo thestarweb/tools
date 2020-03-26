@@ -345,6 +345,22 @@
 			}
 			if(isset($this->_lang[$p][$name])){
 				$str=$this->_lang[$p][$name];
+			}else if(strstr($name,'.')){
+				$list=explode('.',$name);
+				$temp=$this->_lang[$p];
+				foreach($list as $v){
+					if(isset($temp[$v])){
+						$temp=$temp[$v];
+					}else{
+						$temp=null;
+						break;
+					}
+				}
+				if($temp!=null){
+					$str=$temp;
+				}
+			}
+			if(isset($str)&&is_string($str)){
 				foreach($s as $k=>$v){
 					$str=str_replace(('%'.$k),$v,$str);
 				}
