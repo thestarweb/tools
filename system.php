@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=18;
+		const VISION=19;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -43,15 +43,20 @@
 		private $_lang=[];
 		private $lang_type;
 		public function __construct($ini='./cfg.ini',$sfc=''){
-			ob_start();
-			header('charset: utf-8');
-			header('Content-Type: text/html;charset=utf-8');
-			header('server: star-server');
-			header('X-Powered-By: star-framework');
-			date_default_timezone_set('PRC');
-			if(strstr($_SERVER['HTTP_USER_AGENT'],'<')||strstr($_SERVER['REMOTE_ADDR'],'<')){
-				echo '<center><h1>请求参数存在恶意字符串，已经终止程序执行！</h1><hr/>星星站点框架</center>';
-				exit;
+			$is_main_system=false;
+			if(self::$self_obj==null){
+				self::$self_obj=$this;
+				$is_main_system=true;
+				ob_start();
+				header('charset: utf-8');
+				header('Content-Type: text/html;charset=utf-8');
+				header('server: star-server');
+				header('X-Powered-By: star-framework');
+				date_default_timezone_set('PRC');
+				if(strstr($_SERVER['HTTP_USER_AGENT'],'<')||strstr($_SERVER['REMOTE_ADDR'],'<')){
+					echo '<center><h1>请求参数存在恶意字符串，已经终止程序执行！</h1><hr/>星星站点框架</center>';
+					exit;
+				}
 			}
 			$ftime=0;
 			if($sfc){
@@ -59,7 +64,7 @@
 				$ftime=filemtime($sfc);
 			}
 			
-			self::$self_obj||define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
+			$is_main_system&&define('URLROOT',$this->dir(str_replace('\\','/',dirname($_SERVER['SCRIPT_NAME']))));
 			$this->load_cfg($ini,$ftime);//载入配置
 			
 			if(isset($_GET['phone'])){
@@ -80,7 +85,7 @@
 					$this->lang_type=$this->cfgs['lang_default'];
 				}
 			}
-			if(!self::$self_obj){
+			if($is_main_system){
 				set_error_handler(array($this,'for_error'));//注册故障处理函数
 				if($this->cfgs['start_session']){
 					session_start();
@@ -92,15 +97,15 @@
 				echo $this->cfgs['off_info'];
 				exit;
 			}
-			if(function_exists('loaded_ok')) loaded_ok($this);
+			if($this->namespace!=''&&function_exists('\\'.$this->namespace.'\loaded_ok')) call_user_func('\\'.$this->namespace.'\loaded_ok',$this);
+			else if(function_exists('loaded_ok')) loaded_ok($this);
 
 			if(isset($_SERVER['CONTENT_TYPE'])&&strstr($_SERVER['CONTENT_TYPE'],'application/json')){
 				$_POST=json_decode(file_get_contents('php://input'),true);
 			}
 			
 			
-			if(!self::$self_obj){//首次创建后URL解析，非首次创建为子系统 不自动打开页面
-				self::$self_obj=$this;
+			if($is_main_system){//首次创建后URL解析，非首次创建为子系统 不自动打开页面
 				list($path)=explode('?',$_SERVER['REQUEST_URI']);
 				$temp=strlen(URLROOT);
 				$c=explode('/',substr($path,$temp),3);
@@ -110,7 +115,7 @@
 		//自动加载类的方法
 		public function load_class($classname){///var_dump($classname,111);exit;
 			$namespace=substr($classname,0,strrpos($classname,'\\'));
-			if($namespace==""){
+			if($namespace==''){
 				if(file_exists($this->cfgs['tools_dir'].$classname.'.php')){
 					include_once $this->cfgs['tools_dir'].$classname.'.php';
 					return;
@@ -138,7 +143,7 @@
 				}
 			}
 			$ctime&&$this->read_ini($pass);
-			$this->rewrite_cfg();
+			$this->rewrite_cfg($pass);
 			file_put_contents($pass.'.temp',serialize(array('time'=>time(),'cfgs'=>$this->cfgs)));
 		}
 		//读取配置文件
@@ -175,7 +180,7 @@
 		}
 		
 		//进一步解析
-		private function rewrite_cfg(){
+		private function rewrite_cfg($ini){
 			/*if($this->cfgs['root']=='use_server_dir'){
 				$this->cfgs['root']=dirname(__FILE__);
 			}elseif($this->cfgs['root']=='use_index_dir'){
@@ -187,6 +192,9 @@
 				break;
 				case 'system':
 				$r=dirname(__FILE__).'/';
+				break;
+				case 'ini':
+				$r=dirname(dirname($_SERVER['SCRIPT_FILENAME']).'/'.$ini).'/';
 				break;
 				default:
 				$r='';
@@ -398,7 +406,7 @@
 		public function show_json($arr){
 			ob_clean();
 			if(is_array($arr)){
-				$arr['server_version']=VERSION;
+				$arr['system_version']=self::VISION;
 				echo json_encode($arr);
 			}
 			exit;
