@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=19;
+		const VISION=20;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -97,8 +97,11 @@
 				echo $this->cfgs['off_info'];
 				exit;
 			}
-			if($this->namespace!=''&&function_exists('\\'.$this->namespace.'\loaded_ok')) call_user_func('\\'.$this->namespace.'\loaded_ok',$this);
-			else if(function_exists('loaded_ok')) loaded_ok($this);
+			if($this->namespace!=''&&function_exists('\\'.$this->namespace.'\loaded_ok')){
+				call_user_func('\\'.$this->namespace.'\loaded_ok',$this);
+			}else if($is_main_system&&function_exists('loaded_ok')){
+				loaded_ok($this);
+			}
 
 			if(isset($_SERVER['CONTENT_TYPE'])&&strstr($_SERVER['CONTENT_TYPE'],'application/json')){
 				$_POST=json_decode(file_get_contents('php://input'),true);
@@ -194,7 +197,8 @@
 				$r=dirname(__FILE__).'/';
 				break;
 				case 'ini':
-				$r=dirname(dirname($_SERVER['SCRIPT_FILENAME']).'/'.$ini).'/';
+				$this->cfgs['root']=dirname($_SERVER['SCRIPT_FILENAME']).'/';
+				$r=dirname($this->full_path($ini)).'/';
 				break;
 				default:
 				$r='';
@@ -226,7 +230,7 @@
 		//获取完整路径
 		public function full_path($path){
 			if(PHP_OS=='WINNT'){
-				if(substr($path,1,2)==':/'){
+				if(substr($path,1,2)==':/'||substr($path,1,2)==':\\'){
 					return $path;
 				}
 			}elseif(substr($path,0,1)=='/'){
