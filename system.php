@@ -1,6 +1,6 @@
 <?php
 	class system{
-		const VISION=20;
+		const VISION=21;
 		private $is_phone;//是否为手机版
 		private static $self_obj=null;
 		private $namespace='';
@@ -42,9 +42,9 @@
 		];
 		private $_lang=[];
 		private $lang_type;
-		public function __construct($ini='./cfg.ini',$sfc=''){
+		public function __construct($ini='./cfg.ini',$sfc='',$as_child=false){
 			$is_main_system=false;
-			if(self::$self_obj==null){
+			if(!$as_child&&self::$self_obj==null){
 				self::$self_obj=$this;
 				$is_main_system=true;
 				ob_start();
